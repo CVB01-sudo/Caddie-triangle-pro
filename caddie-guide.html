@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Caddie Triangle Pro — Field Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0e13; --surface: #141a22; --surface2: #1a2230;
+    --border: #3a4f63; --border-bright: #4a6070;
+    --green: #3a8c47; --green-dim: #0d2e14; --green-mid: #1a4a22;
+    --gold: #f0c040; --gold-dim: #3a2800;
+    --red: #ff5555; --red-dim: #3a0f0f;
+    --text: #ffffff; --text-sec: #dde6f0; --text-dim: #c8d4e0; --text-muted: #8fa0b0;
+    --radius: 12px; --radius-sm: 8px;
+  }
+  html, body { background: var(--bg); color: var(--text); font-family: 'DM Sans', system-ui, sans-serif; min-height: 100vh; line-height: 1.6; -webkit-tap-highlight-color: transparent; }
+  .app { max-width: 420px; margin: 0 auto; padding-bottom: 56px; }
+
+  /* HERO */
+  .hero { padding: 36px 20px 28px; border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(58,140,71,0.1) 0%, transparent 70%); pointer-events: none; }
+  .hero-eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
+  .hero-title { font-family: 'DM Mono', monospace; font-size: 28px; font-weight: 500; color: var(--text); letter-spacing: -0.02em; line-height: 1.2; }
+  .hero-title span { color: var(--green); }
+  .hero-sub { font-size: 14px; color: var(--text-dim); margin-top: 10px; font-weight: 500; }
+  .goal-banner { margin-top: 20px; background: var(--green-dim); border: 1px solid var(--green); border-radius: var(--radius-sm); padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+  .goal-icon { font-size: 24px; flex-shrink: 0; }
+  .goal-text { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.3; }
+  .goal-text span { color: var(--green); }
+
+  /* NAV */
+  .nav-dots { display: flex; gap: 6px; padding: 16px 20px; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; background: var(--bg); position: sticky; top: 0; z-index: 10; }
+  .nav-dots::-webkit-scrollbar { display: none; }
+  .nav-dot { flex-shrink: 0; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim); font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; text-decoration: none; display: block; }
+  .nav-dot.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+
+  /* SECTIONS — match app .section exactly */
+  .section { padding: 18px 20px; border-bottom: 1px solid var(--border); }
+  .section-num { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); margin-bottom: 4px; }
+  .section-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 12px; line-height: 1.2; }
+  .section-body { font-size: 13px; color: var(--text-sec); line-height: 1.7; font-weight: 500; }
+  .section-body strong { color: var(--text); font-weight: 700; }
+
+  /* INPUTS GRID */
+  .inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+  .input-chip { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; }
+  .input-chip-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); margin-bottom: 6px; }
+  .input-chip-vals { font-size: 12px; color: var(--text-sec); line-height: 1.6; font-weight: 500; }
+  .input-chip.new { border-color: var(--gold); }
+  .input-chip.new .input-chip-label { color: var(--gold); }
+
+  /* STEPS */
+  .steps { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+  .step { display: flex; gap: 14px; align-items: flex-start; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--green-dim); border: 1px solid var(--green); color: var(--green); font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-content { flex: 1; }
+  .step-label { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .step-desc { font-size: 13px; color: var(--text-sec); line-height: 1.6; font-weight: 500; }
+  .step-tip { margin-top: 6px; font-size: 12px; color: var(--gold); font-weight: 600; }
+
+  /* CALLOUTS — match app info blocks */
+  .callout { margin-top: 14px; border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; line-height: 1.6; font-weight: 600; }
+  .callout.gold { background: var(--gold-dim); border: 1px solid var(--gold); color: var(--gold); }
+  .callout.red  { background: var(--red-dim);  border: 1px solid var(--red);  color: var(--red); }
+  .callout.green { background: var(--green-dim); border: 1px solid var(--green); color: var(--green); }
+  .callout strong { font-weight: 700; display: block; margin-bottom: 4px; font-size: 14px; }
+
+  /* RULES — match app .rule */
+  .rules { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .rule { background: var(--surface2); border: 1px solid var(--border); border-left: 3px solid var(--green); border-radius: var(--radius-sm); padding: 14px 16px; }
+  .rule-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+  .rule-num { font-family: 'DM Mono', monospace; color: var(--green); margin-right: 6px; }
+  .rule-body { font-size: 13px; color: var(--text-sec); line-height: 1.6; font-weight: 500; }
+
+  /* PATTERNS — match app pattern rows */
+  .pattern-table { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .pattern-row { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
+  .pattern-miss { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; color: var(--red); background: var(--red-dim); border: 1px solid var(--red); border-radius: 6px; padding: 3px 8px; flex-shrink: 0; white-space: nowrap; align-self: flex-start; margin-top: 1px; }
+  .pattern-miss.gold { color: var(--gold); background: var(--gold-dim); border-color: var(--gold); }
+  .pattern-fix { font-size: 13px; color: var(--text-sec); line-height: 1.5; font-weight: 500; }
+  .pattern-fix strong { color: var(--text); font-weight: 700; }
+
+  /* WORKFLOW */
+  .workflow { margin-top: 14px; display: flex; flex-direction: column; }
+  .wf-step { display: flex; gap: 14px; position: relative; padding-bottom: 20px; }
+  .wf-step:last-child { padding-bottom: 0; }
+  .wf-line { position: absolute; left: 13px; top: 28px; bottom: 0; width: 2px; background: var(--border); }
+  .wf-step:last-child .wf-line { display: none; }
+  .wf-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--surface2); border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; z-index: 1; }
+  .wf-dot.active { background: var(--green-dim); border-color: var(--green); }
+  .wf-content { flex: 1; padding-top: 4px; }
+  .wf-label { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .wf-desc { font-size: 13px; color: var(--text-sec); line-height: 1.5; font-weight: 500; }
+
+  /* FOOTER */
+  .footer { padding: 28px 20px; text-align: center; }
+  .footer-flag { font-size: 36px; display: block; margin-bottom: 10px; }
+  .footer-text { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .footer-text span { color: var(--green); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="hero">
+    <div class="hero-eyebrow">⛳ Field Guide · v2.0</div>
+    <div class="hero-title">Caddie<br><span>Triangle Pro</span></div>
+    <div class="hero-sub">7 inputs. One aim point. Zero 3-putts.</div>
+    <div class="goal-banner">
+      <div class="goal-icon">🎯</div>
+      <div class="goal-text">The goal is <span>zero 3-putts</span>.<br>Every input exists for that.</div>
+    </div>
+  </div>
+
+  <div class="nav-dots">
+    <a class="nav-dot active" href="#inputs">7 Inputs</a>
+    <a class="nav-dot" href="#ongreen">On Green</a>
+    <a class="nav-dot" href="#logging">Logging</a>
+    <a class="nav-dot" href="#insights">Insights</a>
+    <a class="nav-dot" href="#patterns">Patterns</a>
+    <a class="nav-dot" href="#rules">3 Rules</a>
+    <a class="nav-dot" href="#cowork">Cowork</a>
+  </div>
+
+  <!-- 7 INPUTS -->
+  <div class="section" id="inputs">
+    <div class="section-num">01 · THE 7 INPUTS</div>
+    <div class="section-title">What the app needs</div>
+    <div class="section-body">Set Green Speed and Grain once on the practice green — they don't change hole to hole. The other 5 inputs change every putt.</div>
+    <div class="inputs-grid">
+      <div class="input-chip">
+        <div class="input-chip-label">Distance</div>
+        <div class="input-chip-vals">Walk heel-to-toe.<br>1 step ≈ 2.7 ft.<br>Half steps: tap +/−</div>
+      </div>
+      <div class="input-chip">
+        <div class="input-chip-label">Slope</div>
+        <div class="input-chip-vals">10 increments:<br>0% → 5% in 0.5% steps<br>(4%→5% jump intentional)</div>
+      </div>
+      <div class="input-chip">
+        <div class="input-chip-label">Putt Direction</div>
+        <div class="input-chip-vals">Uphill kills break.<br>Downhill amplifies.<br>Flat = baseline.</div>
+      </div>
+      <div class="input-chip">
+        <div class="input-chip-label">Green Speed</div>
+        <div class="input-chip-vals">Slow · Med · Fast · Tour<br>Set once on the<br>practice green.</div>
+      </div>
+      <div class="input-chip new">
+        <div class="input-chip-label">Grain ✦</div>
+        <div class="input-chip-vals">With · Across · Against<br>Bermuda grain shifts<br>break ±10–15%.</div>
+      </div>
+      <div class="input-chip new">
+        <div class="input-chip-label">Capture Speed ✦</div>
+        <div class="input-chip-vals">Die It · Normal · Firm<br>Dying adds break.<br>Firm reduces it.</div>
+      </div>
+      <div class="input-chip" style="grid-column:span 2">
+        <div class="input-chip-label">Cup Low Point</div>
+        <div class="input-chip-vals">Left · Center · Right — stand behind the cup, find the low side. Drives break direction and activates proximity factor inside 15ft.</div>
+      </div>
+    </div>
+    <div class="callout gold">
+      <strong>Set once per round</strong>
+      Green Speed + Grain on the practice green, leave them. Only change if the course transitions grass types or conditions clearly shift mid-round.
+    </div>
+  </div>
+
+  <!-- ON THE GREEN -->
+  <div class="section" id="ongreen">
+    <div class="section-num">02 · ON THE GREEN</div>
+    <div class="section-title">The read sequence</div>
+    <div class="section-body">20 seconds once it's muscle memory. Same order every time.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-label">Walk the putt — enter steps</div>
+          <div class="step-desc">Heel-to-toe from ball to cup. Half steps supported — 7.5 steps = 20.25 ft. Enter distance first, before reading anything else.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-label">Find the cup low point</div>
+          <div class="step-desc">Crouch behind the cup and look straight at it. Which side is lower? Set Left / Center / Right. This drives break direction and activates the proximity factor inside 15ft.</div>
+          <div class="step-tip">→ Most important single read. Cup low = where the ball enters.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-label">Call the slope — exact %</div>
+          <div class="step-desc">10 precise chips: 0%, 0.5%, 1%, 1.5%, 2%, 2.5%, 3%, 3.5%, 4%, 5%. Call the number like Chad does. When in doubt, go one increment lower — amateurs always over-read.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-label">Set uphill or downhill</div>
+          <div class="step-desc">Uphill kills break (×0.70). Downhill amplifies (×1.35). Flat is baseline (×1.0).</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-label">Set Capture Speed</div>
+          <div class="step-desc"><strong>Die It</strong> — ball barely reaches the hole, falls in soft (+20% break). <strong>Normal</strong> — standard pace, 12–18" past. <strong>Firm</strong> — charge the back of the cup (−15% break).</div>
+          <div class="step-tip">→ Fast downhill: always Die It. Short straight putts: Firm works.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <div class="step-label">Confirm grain (set once)</div>
+          <div class="step-desc">Shiny surface = grain going away from you (With grain, less break). Dull = Against grain, more break. Across = neutral. Set once on the practice green, leave it.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-content">
+          <div class="step-label">Read the result — commit</div>
+          <div class="step-desc">App shows aim point in feet/inches, break direction, proximity note if inside 15ft, lag strategy if over 30ft, and Chad's tip. Find the aim spot. Lock on. Putt to that spot — not the hole.</div>
+          <div class="step-tip">→ Doubt kills more putts than bad reads. Commit fully.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout gold">
+      <strong>↗️ Double Breaker (rare)</strong>
+      Toggle below the result card — OFF by default, auto-resets each hole. Walk the full putt, note steps at the inflection point (where slope changes). Enter S1 steps — S2 auto-calculates. Each segment gets its own slope, direction, and cup low. Triangle shows S1 (green) → inflection → S2 (gold) with combined overlay. Later inflection = more S2 weight, because the ball is slower near the cup.
+    </div>
+  </div>
+  <div class="section" id="logging">
+    <div class="section-num">03 · LOGGING</div>
+    <div class="section-title">After the putt</div>
+    <div class="section-body">10 seconds walking to the next tee. Don't skip it — this is where your pattern data comes from.</div>
+    <div class="workflow">
+      <div class="wf-step">
+        <div class="wf-dot active">📏</div>
+        <div class="wf-line"></div>
+        <div class="wf-content">
+          <div class="wf-label">Enter first putt distance</div>
+          <div class="wf-desc">Tap +/− to set feet in 0.5ft increments. Separates lag problems (20ft+) from read problems (sub-10ft).</div>
+        </div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-dot active">🔢</div>
+        <div class="wf-line"></div>
+        <div class="wf-content">
+          <div class="wf-label">Tap putt count</div>
+          <div class="wf-desc">1 (ACE) · 2 (GOOD) · 3 (3-PUTT) · 4+ (BLOW-UP). Reveals miss section automatically.</div>
+        </div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-dot active">📍</div>
+        <div class="wf-line"></div>
+        <div class="wf-content">
+          <div class="wf-label">Tap miss direction</div>
+          <div class="wf-desc">Made · Left · Right · Short · Long. Most valuable data point. Feeds caddie memory and Round Insights panel.</div>
+        </div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-dot">➡️</div>
+        <div class="wf-line"></div>
+        <div class="wf-content">
+          <div class="wf-label">Auto-advances to next hole</div>
+          <div class="wf-desc">Moves forward in 1.6 seconds. Re-tap putt chips anytime to overwrite.</div>
+        </div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-dot active">👥</div>
+        <div class="wf-line"></div>
+        <div class="wf-content">
+          <div class="wf-label">Player 2 (optional)</div>
+          <div class="wf-desc">After logging CVB's miss, a "Log [Player 2]" button appears. Tap it to log their putts on the same hole. Skip any hole — just advance. Doubles your data for faster formula validation.</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout green">
+      <strong>Round survives everything</strong>
+      Phone sleeps, browser closes — round is saved and restores exactly where you left off. Same calendar day only. Starts fresh tomorrow.
+    </div>
+  </div>
+
+  <!-- ROUND INSIGHTS -->
+  <div class="section" id="insights">
+    <div class="section-num">04 · ROUND INSIGHTS</div>
+    <div class="section-title">What the app tracks</div>
+    <div class="section-body">Open the scorecard at any point. Insights panel fires after 6+ holes of data to avoid false signals.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">📊</div>
+        <div class="step-content">
+          <div class="step-label">Lag Putts (&gt;30ft)</div>
+          <div class="step-desc">Count of lag situations. Triangle shows a 3ft halo on these — the target zone, not the hole.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">🎯</div>
+        <div class="step-content">
+          <div class="step-label">Short Putt Conversion (≤8ft)</div>
+          <div class="step-desc">Made / attempted inside 8ft. Low conversion = read problem. Trust the triangle more on short putts.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">↔️</div>
+        <div class="step-content">
+          <div class="step-label">Miss Bias</div>
+          <div class="step-desc">Left vs Right miss count. Systematic bias = alignment or face control issue, not a read issue.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">⚡</div>
+        <div class="step-content">
+          <div class="step-label">Speed Control</div>
+          <div class="step-desc">Short vs Long miss count. Consistent short = dial up green speed. Consistent long = take pace off.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">🧠</div>
+        <div class="step-content">
+          <div class="step-label">Caddie Memory (live)</div>
+          <div class="step-desc">After 3+ misses in the same direction, a compensation tip appears on your next putt read: "Pattern: missing LEFT — aim 2" more right." Requires 3 to fire — avoids false signals on small samples.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PATTERNS -->
+  <div class="section" id="patterns">
+    <div class="section-num">05 · PATTERNS</div>
+    <div class="section-title">What your data tells you</div>
+    <div class="section-body">After a few rounds one of these shows up clearly. That's your fix.</div>
+    <div class="pattern-table">
+      <div class="pattern-row">
+        <div class="pattern-miss">Short</div>
+        <div class="pattern-fix"><strong>Under-hitting lag putts.</strong> Dial up green speed one level, or switch from Die It to Normal.</div>
+      </div>
+      <div class="pattern-row">
+        <div class="pattern-miss">Long</div>
+        <div class="pattern-fix"><strong>Charging downhill putts.</strong> Switch to Die It on fast greens. Aim to expire at the hole.</div>
+      </div>
+      <div class="pattern-row">
+        <div class="pattern-miss">Left</div>
+        <div class="pattern-fix"><strong>Pulling, or over-reading left break.</strong> Drop slope one level on left-low putts. Check shoulder alignment.</div>
+      </div>
+      <div class="pattern-row">
+        <div class="pattern-miss">Right</div>
+        <div class="pattern-fix"><strong>Pushing, or over-reading right break.</strong> Check face at impact. Verify aim point commitment.</div>
+      </div>
+      <div class="pattern-row">
+        <div class="pattern-miss">3-putts 20ft+</div>
+        <div class="pattern-fix"><strong>Lag distance problem — not a read problem.</strong> Focus on the 3ft circle. Stop trying to make long putts.</div>
+      </div>
+      <div class="pattern-row">
+        <div class="pattern-miss">3-putts 10ft−</div>
+        <div class="pattern-fix"><strong>Read problem.</strong> Trust the triangle more. You're second-guessing the aim point at address.</div>
+      </div>
+      <div class="pattern-row">
+        <div class="pattern-miss gold">Grain Against</div>
+        <div class="pattern-fix"><strong>Consistently missing on against-grain putts?</strong> Add 10% to the aim point manually. The formula accounts for it but your eyes may be fighting the read.</div>
+      </div>
+      <div class="pattern-row">
+        <div class="pattern-miss gold">Die It</div>
+        <div class="pattern-fix"><strong>Dying putts coming up short?</strong> You're decelerating, not dying. Make a committed stroke. Let the break do the work.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 RULES -->
+  <div class="section" id="rules">
+    <div class="section-num">06 · THREE RULES</div>
+    <div class="section-title">Non-negotiable</div>
+    <div class="rules">
+      <div class="rule">
+        <div class="rule-title"><span class="rule-num">01</span>Lag is the job on anything over 20ft</div>
+        <div class="rule-body">You are not trying to make it. You are trying to leave it inside 3 feet. The triangle gives you the line. Speed gives you the distance. The lag halo is your target — not the flag.</div>
+      </div>
+      <div class="rule">
+        <div class="rule-title"><span class="rule-num">02</span>Never be short</div>
+        <div class="rule-body">Die It means the ball barely crosses the hole — not that it dies before it gets there. Miss past the hole every time. Short is the worst miss in golf and the most common amateur miss.</div>
+      </div>
+      <div class="rule">
+        <div class="rule-title"><span class="rule-num">03</span>Commit to the aim point, not the hole</div>
+        <div class="rule-body">The app gives you a spot outside the cup. That is your target. Pick it, lock on, don't look at the hole again. The caddie memory and Chad tips exist so you aren't standing over the ball thinking — you already have the answer.</div>
+      </div>
+    </div>
+    <div class="callout red">
+      <strong>The doubt trap</strong>
+      A committed wrong read often goes in. A doubted correct read often doesn't. Commit every time.
+    </div>
+  </div>
+
+  <!-- COWORK -->
+  <div class="section" id="cowork">
+    <div class="section-num">07 · AFTER THE ROUND</div>
+    <div class="section-title">Cowork analysis</div>
+    <div class="section-body">Export your round and bring it to Cowork with a scorecard photo. One session gives you more insight than 10 years of guessing.</div>
+    <div class="workflow">
+      <div class="wf-step">
+        <div class="wf-dot active">📋</div>
+        <div class="wf-line"></div>
+        <div class="wf-content">
+          <div class="wf-label">Scorecard → ⬆ Export</div>
+          <div class="wf-desc">JSON copies to clipboard. Full per-hole data: putts, distance, miss direction, proximity flag.</div>
+        </div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-dot active">📸</div>
+        <div class="wf-line"></div>
+        <div class="wf-content">
+          <div class="wf-label">Photograph your scorecard</div>
+          <div class="wf-desc">Claude reads hole distances and pars from the photo — cross-references with putt data to show which holes cost strokes.</div>
+        </div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-dot active">🤖</div>
+        <div class="wf-line"></div>
+        <div class="wf-content">
+          <div class="wf-label">Paste JSON into Cowork</div>
+          <div class="wf-desc">Drop JSON + scorecard photo. Ask: "What are my putting patterns? Where am I losing strokes? Is the formula reading these greens correctly?"</div>
+        </div>
+      </div>
+      <div class="wf-step">
+        <div class="wf-dot">📈</div>
+        <div class="wf-line"></div>
+        <div class="wf-content">
+          <div class="wf-label">Formula refinement over time</div>
+          <div class="wf-desc">Proximity thresholds, slope multipliers, grain factors — all tunable from real data. After 3–4 rounds the formula becomes personalized to your stroke and your courses.</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout gold">
+      <strong>First round priority</strong>
+      Log everything faithfully — distance, putts, miss. That first export is the foundation. The formula improves from truth, not assumptions.
+    </div>
+  </div>
+
+  <div class="footer">
+    <span class="footer-flag">⛳</span>
+    <div class="footer-text">
+      Caddie Triangle Pro · Field Guide v2.0<br>
+      <span>7 inputs. One aim point. Zero 3-putts.</span><br>
+      Trust the triangle. Commit to the spot.
+    </div>
+  </div>
+
+</div>
+<script>
+  const sections = document.querySelectorAll('.section[id]');
+  const dots = document.querySelectorAll('.nav-dot');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 80) current = s.id; });
+    dots.forEach(d => { d.classList.toggle('active', d.getAttribute('href') === '#' + current); });
+  }, { passive: true });
+  dots.forEach(d => {
+    d.addEventListener('click', e => {
+      e.preventDefault();
+      const t = document.querySelector(d.getAttribute('href'));
+      if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+</body>
+</html>
