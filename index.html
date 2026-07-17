@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Caddie Triangle Pro</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-left">
+      <div class="flag-icon">⛳</div>
+      <div>
+        <div class="header-title">Caddie Triangle Pro</div>
+        <div class="header-sub">Chad Method · v1.0</div>
+      </div>
+    </div>
+    <button class="scorecard-btn" onclick="openScorecard()">
+      📋 Card
+      <span class="three-putt-badge" id="threePuttBadge" style="display:none">0</span>
+    </button>
+  </div>
+
+  <div class="session-bar">
+    <div class="session-stat"><div class="session-stat-val green" id="statHole">1</div><div class="session-stat-label">Hole</div></div>
+    <div class="session-stat"><div class="session-stat-val" id="statTotal">0</div><div class="session-stat-label">Total Putts</div></div>
+    <div class="session-stat"><div class="session-stat-val" id="statAvg">—</div><div class="session-stat-label">Avg / Hole</div></div>
+    <div class="session-stat"><div class="session-stat-val red" id="stat3Putt">0</div><div class="session-stat-label">3-Putts</div></div>
+  </div>
+
+  <!-- PLAYER BAR -->
+  <div class="player-bar" id="playerBar">
+    <div class="player-btn active" id="p1Btn" onclick="switchPlayer(1)">CVB</div>
+    <div class="player-btn" id="p2Btn" onclick="switchPlayer(2)" style="display:none"></div>
+    <button class="add-p2-btn" id="addP2Btn" onclick="activatePlayer2()">+ Add Player 2</button>
+    <div id="p2InputRow" style="display:none;flex:1;gap:8px;align-items:center">
+      <input id="p2NameInput" maxlength="12" placeholder="Player 2 name" autocomplete="off" style="flex:1;min-width:0;padding:8px 10px;border-radius:8px;border:2px solid var(--gold);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;outline:none;font-family:'DM Sans',sans-serif" onkeydown="if(event.key==='Enter')confirmPlayer2()">
+      <button onclick="confirmPlayer2()" style="padding:8px 14px;border-radius:8px;border:2px solid var(--gold);background:var(--gold-dim);color:var(--gold);font-size:14px;font-weight:700;cursor:pointer">✓</button>
+    </div>
+  </div>
+
+  <div class="hole-nav">
+    <button class="hole-btn" onclick="changeHole(-1)">&#8249;</button>
+    <div class="hole-display">
+      <div class="hole-number" id="holeNum">1</div>
+      <div class="hole-label">Current Hole</div>
+    </div>
+    <div class="hole-logged empty" id="holeLogged">—</div>
+    <button class="hole-btn" onclick="changeHole(1)">&#8250;</button>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Distance — Your Steps (1 step ≈ 2.7 ft)</div>
+    <div class="steps-row">
+      <button class="steps-btn" onclick="changeSteps(-0.5)">−</button>
+      <div class="steps-display">
+        <div class="steps-value" id="stepsVal">8</div>
+        <div class="steps-unit">steps</div>
+        <div class="steps-feet" id="feetVal">≈ 21.6 ft</div>
+      </div>
+      <button class="steps-btn" onclick="changeSteps(0.5)">+</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Slope (Visual Read)</div>
+    <div class="chips chips-5" style="margin-bottom:8px">
+      <div class="chip" onclick="sel('slope','zero',this)"><span class="chip-icon">⬛</span>Zero<span class="chip-pct">0%</span></div>
+      <div class="chip" onclick="sel('slope','p5',this)"><span class="chip-icon">〰️</span>½<span class="chip-pct">0.5%</span></div>
+      <div class="chip" onclick="sel('slope','low',this)"><span class="chip-icon">〰️</span>1%<span class="chip-pct">Low</span></div>
+      <div class="chip" onclick="sel('slope','low5',this)"><span class="chip-icon">📐</span>1.5%<span class="chip-pct"></span></div>
+      <div class="chip" onclick="sel('slope','mod',this)"><span class="chip-icon">📐</span>2%<span class="chip-pct">Mod</span></div>
+    </div>
+    <div class="chips chips-5">
+      <div class="chip" onclick="sel('slope','mod5',this)"><span class="chip-icon">📐</span>2.5%<span class="chip-pct"></span></div>
+      <div class="chip" onclick="sel('slope','strong',this)"><span class="chip-icon">📈</span>3%<span class="chip-pct"></span></div>
+      <div class="chip" onclick="sel('slope','strong5',this)"><span class="chip-icon">📈</span>3.5%<span class="chip-pct"></span></div>
+      <div class="chip" onclick="sel('slope','steep',this)"><span class="chip-icon">📈</span>4%<span class="chip-pct"></span></div>
+      <div class="chip" onclick="sel('slope','severe',this)"><span class="chip-icon">⛰️</span>5%<span class="chip-pct">Max</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Putt Direction</div>
+    <div class="chips chips-3">
+      <div class="chip" onclick="sel('hill','up',this)"><span class="chip-icon">⬆️</span>Uphill</div>
+      <div class="chip" onclick="sel('hill','flat',this)"><span class="chip-icon">➡️</span>Flat</div>
+      <div class="chip" onclick="sel('hill','down',this)"><span class="chip-icon">⬇️</span>Downhill</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Green Speed</div>
+    <div class="chips chips-4">
+      <div class="chip" onclick="sel('speed','slow',this)"><span class="chip-icon">🐢</span>Slow<span class="chip-pct">Stimp 8</span></div>
+      <div class="chip" onclick="sel('speed','med',this)"><span class="chip-icon">⚡</span>Med<span class="chip-pct">Stimp 10</span></div>
+      <div class="chip" onclick="sel('speed','fast',this)"><span class="chip-icon">🔥</span>Fast<span class="chip-pct">Stimp 12</span></div>
+      <div class="chip" onclick="sel('speed','tour',this)"><span class="chip-icon">🏆</span>Tour<span class="chip-pct">13+</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Grain Direction (Bermuda)</div>
+    <div class="chips chips-3">
+      <div class="chip" onclick="sel('grain','with',this)"><span class="chip-icon">➡️</span>With<span class="chip-pct">−10% break</span></div>
+      <div class="chip" onclick="sel('grain','across',this)"><span class="chip-icon">↔️</span>Across<span class="chip-pct">neutral</span></div>
+      <div class="chip" onclick="sel('grain','against',this)"><span class="chip-icon">⬅️</span>Against<span class="chip-pct">+15% break</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Capture Speed</div>
+    <div class="chips chips-3">
+      <div class="chip" onclick="sel('speedIntent','die',this)"><span class="chip-icon">🧵</span>Die It<span class="chip-pct">+20% break</span></div>
+      <div class="chip" onclick="sel('speedIntent','normal',this)"><span class="chip-icon">⚪</span>Normal<span class="chip-pct">neutral</span></div>
+      <div class="chip" onclick="sel('speedIntent','firm',this)"><span class="chip-icon">💥</span>Firm<span class="chip-pct">−15% break</span></div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--text-sec);line-height:1.6;font-weight:500;">Dying the ball amplifies break. Hitting firm reduces it.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Cup Low Point — Where does the cup drain?</div>
+    <div class="chips chips-3">
+      <div class="chip" onclick="sel('cup','left',this)"><span class="chip-icon">◀️</span>Left Low</div>
+      <div class="chip" onclick="sel('cup','center',this)"><span class="chip-icon">⬇️</span>Center Low</div>
+      <div class="chip" onclick="sel('cup','right',this)"><span class="chip-icon">▶️</span>Right Low</div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--text-sec);line-height:1.6;font-weight:500;">Stand behind the cup — the low side is where the ball enters.</div>
+  </div>
+
+  <div class="result-card" id="resultCard">
+    <div class="empty-result"><span class="empty-icon">📐</span>Select all inputs to read the green</div>
+  </div>
+
+  <div class="canvas-section" id="canvasSection">
+    <div class="section-label">Triangle Read</div>
+    <div class="canvas-wrap"><canvas id="triangleCanvas" height="220"></canvas></div>
+  </div>
+
+  <!-- DOUBLE BREAKER TOGGLE -->
+  <div class="section" id="dbToggleSection">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div class="section-label" style="margin-bottom:2px">Double Breaker</div>
+        <div style="font-size:11px;color:var(--text-muted);font-weight:500;">Two slopes — one putt</div>
+      </div>
+      <button class="db-toggle" id="dbToggleBtn" onclick="toggleDoubleBreaker()">OFF</button>
+    </div>
+  </div>
+
+  <!-- DOUBLE BREAKER INPUTS -->
+  <div id="dbSection" style="display:none">
+
+    <!-- S1 -->
+    <div class="section" style="background:var(--surface)">
+      <div class="section-label" style="color:var(--green)">Segment 1 — Ball → Inflection</div>
+
+      <div style="margin-bottom:12px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-sec);margin-bottom:8px">Steps to Inflection Point</div>
+        <div class="steps-row">
+          <button class="steps-btn" onclick="changeDbSteps('s1',-0.5)">−</button>
+          <div class="steps-display">
+            <div class="steps-value" id="dbS1Val">4</div>
+            <div class="steps-unit">steps</div>
+            <div class="steps-feet" id="dbS1Ft">≈ 10.8 ft</div>
+          </div>
+          <button class="steps-btn" onclick="changeDbSteps('s1',0.5)">+</button>
+        </div>
+      </div>
+
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-sec);margin-bottom:8px">Slope S1</div>
+      <div class="chips chips-5" style="margin-bottom:8px">
+        <div class="chip" onclick="selDb('s1slope','zero',this)"><span class="chip-icon">⬛</span>0%</div>
+        <div class="chip" onclick="selDb('s1slope','p5',this)"><span class="chip-icon">〰️</span>0.5%</div>
+        <div class="chip" onclick="selDb('s1slope','low',this)"><span class="chip-icon">〰️</span>1%</div>
+        <div class="chip" onclick="selDb('s1slope','low5',this)"><span class="chip-icon">📐</span>1.5%</div>
+        <div class="chip" onclick="selDb('s1slope','mod',this)"><span class="chip-icon">📐</span>2%</div>
+      </div>
+      <div class="chips chips-5" style="margin-bottom:12px">
+        <div class="chip" onclick="selDb('s1slope','mod5',this)"><span class="chip-icon">📐</span>2.5%</div>
+        <div class="chip" onclick="selDb('s1slope','strong',this)"><span class="chip-icon">📈</span>3%</div>
+        <div class="chip" onclick="selDb('s1slope','strong5',this)"><span class="chip-icon">📈</span>3.5%</div>
+        <div class="chip" onclick="selDb('s1slope','steep',this)"><span class="chip-icon">📈</span>4%</div>
+        <div class="chip" onclick="selDb('s1slope','severe',this)"><span class="chip-icon">⛰️</span>5%</div>
+      </div>
+
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-sec);margin-bottom:8px">Direction S1</div>
+      <div class="chips chips-3" style="margin-bottom:12px">
+        <div class="chip" onclick="selDb('s1hill','up',this)"><span class="chip-icon">⬆️</span>Uphill</div>
+        <div class="chip" onclick="selDb('s1hill','flat',this)"><span class="chip-icon">➡️</span>Flat</div>
+        <div class="chip" onclick="selDb('s1hill','down',this)"><span class="chip-icon">⬇️</span>Downhill</div>
+      </div>
+
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-sec);margin-bottom:8px">Cup Low S1</div>
+      <div class="chips chips-3">
+        <div class="chip" onclick="selDb('s1cup','left',this)"><span class="chip-icon">◀️</span>Left</div>
+        <div class="chip" onclick="selDb('s1cup','center',this)"><span class="chip-icon">⬇️</span>Center</div>
+        <div class="chip" onclick="selDb('s1cup','right',this)"><span class="chip-icon">▶️</span>Right</div>
+      </div>
+    </div>
+
+    <!-- S2 -->
+    <div class="section" style="background:var(--surface)">
+      <div class="section-label" style="color:var(--gold)">Segment 2 — Inflection → Cup</div>
+      <div style="font-size:11px;color:var(--text-muted);font-weight:500;margin-bottom:12px" id="dbS2Label">S2 steps calculated from total</div>
+
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-sec);margin-bottom:8px">Slope S2</div>
+      <div class="chips chips-5" style="margin-bottom:8px">
+        <div class="chip" onclick="selDb('s2slope','zero',this)"><span class="chip-icon">⬛</span>0%</div>
+        <div class="chip" onclick="selDb('s2slope','p5',this)"><span class="chip-icon">〰️</span>0.5%</div>
+        <div class="chip" onclick="selDb('s2slope','low',this)"><span class="chip-icon">〰️</span>1%</div>
+        <div class="chip" onclick="selDb('s2slope','low5',this)"><span class="chip-icon">📐</span>1.5%</div>
+        <div class="chip" onclick="selDb('s2slope','mod',this)"><span class="chip-icon">📐</span>2%</div>
+      </div>
+      <div class="chips chips-5" style="margin-bottom:12px">
+        <div class="chip" onclick="selDb('s2slope','mod5',this)"><span class="chip-icon">📐</span>2.5%</div>
+        <div class="chip" onclick="selDb('s2slope','strong',this)"><span class="chip-icon">📈</span>3%</div>
+        <div class="chip" onclick="selDb('s2slope','strong5',this)"><span class="chip-icon">📈</span>3.5%</div>
+        <div class="chip" onclick="selDb('s2slope','steep',this)"><span class="chip-icon">📈</span>4%</div>
+        <div class="chip" onclick="selDb('s2slope','severe',this)"><span class="chip-icon">⛰️</span>5%</div>
+      </div>
+
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-sec);margin-bottom:8px">Direction S2</div>
+      <div class="chips chips-3" style="margin-bottom:12px">
+        <div class="chip" onclick="selDb('s2hill','up',this)"><span class="chip-icon">⬆️</span>Uphill</div>
+        <div class="chip" onclick="selDb('s2hill','flat',this)"><span class="chip-icon">➡️</span>Flat</div>
+        <div class="chip" onclick="selDb('s2hill','down',this)"><span class="chip-icon">⬇️</span>Downhill</div>
+      </div>
+
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-sec);margin-bottom:8px">Cup Low S2</div>
+      <div class="chips chips-3">
+        <div class="chip" onclick="selDb('s2cup','left',this)"><span class="chip-icon">◀️</span>Left</div>
+        <div class="chip" onclick="selDb('s2cup','center',this)"><span class="chip-icon">⬇️</span>Center</div>
+        <div class="chip" onclick="selDb('s2cup','right',this)"><span class="chip-icon">▶️</span>Right</div>
+      </div>
+    </div>
+
+    <!-- DB RESULT -->
+    <div class="result-card" id="dbResultCard" style="margin:18px">
+      <div class="empty-result"><span class="empty-icon">↗️</span>Set both segments to read the double breaker</div>
+    </div>
+
+    <!-- DB TRIANGLE -->
+    <div class="canvas-section visible" id="dbCanvasSection" style="display:none">
+      <div class="section-label">Double Breaker Read</div>
+      <div class="canvas-wrap"><canvas id="dbCanvas" height="260"></canvas></div>
+    </div>
+
+  </div>
+
+  <div class="putt-log-section" id="puttLogSection">
+    <div class="chad-tip" id="puttChadTip" style="display:none;margin:0 0 16px"></div>
+    <div class="section-label">First Putt Distance — Feet</div>
+    <div class="steps-row">
+      <button class="steps-btn" onclick="changeDist(-1)">−</button>
+      <div class="steps-display">
+        <div class="steps-value" id="distVal">—</div>
+        <div class="steps-unit">feet</div>
+        <div class="steps-feet" id="distFtVal"></div>
+      </div>
+      <button class="steps-btn" onclick="changeDist(1)">+</button>
+    </div>
+    <div class="section-label" style="margin-top:16px">How many putts?</div>
+    <div class="putt-chips">
+      <div class="putt-chip p1" onclick="logPutts(1)">1<span class="putt-chip-label">ACE</span></div>
+      <div class="putt-chip p2" onclick="logPutts(2)">2<span class="putt-chip-label">GOOD</span></div>
+      <div class="putt-chip p3" onclick="logPutts(3)">3<span class="putt-chip-label">3-PUTT</span></div>
+      <div class="putt-chip p4" onclick="logPutts(4)">4+<span class="putt-chip-label">BLOW-UP</span></div>
+    </div>
+    <div id="missSection" style="display:none;margin-top:16px">
+      <div class="section-label">Result</div>
+      <div class="miss-chips" style="grid-template-columns:1fr;margin-bottom:10px">
+        <div class="miss-chip made" onclick="logMiss('made',this)">✅ Made</div>
+      </div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-sec);margin-bottom:6px">Line</div>
+      <div class="miss-chips" id="missLineRow" style="margin-bottom:10px">
+        <div class="miss-chip" onclick="selMissPart('line','left',this)">◀ Left</div>
+        <div class="miss-chip" onclick="selMissPart('line','online',this)">🎯 On-Line</div>
+        <div class="miss-chip" onclick="selMissPart('line','right',this)">Right ▶</div>
+      </div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-sec);margin-bottom:6px">Distance</div>
+      <div class="miss-chips" id="missDistRow">
+        <div class="miss-chip" onclick="selMissPart('dist','short',this)">⬇ Short</div>
+        <div class="miss-chip" onclick="selMissPart('dist','good',this)">✓ Good Pace</div>
+        <div class="miss-chip" onclick="selMissPart('dist','long',this)">⬆ Long</div>
+      </div>
+    </div>
+    <div class="logged-confirm" id="loggedConfirm"></div>
+    <button class="log-p2-btn" id="logP2Btn" onclick="startLogP2()"></button>
+  </div>
+
+</div>
+
+<!-- SCORECARD MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeScorecard(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📋 Scorecard</div>
+      <button class="modal-close" onclick="closeScorecard()">✕</button>
+    </div>
+    <div class="scorecard-totals" id="scorecardTotals"></div>
+
+    <div id="analyticsPanel" style="margin:0 18px 16px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;">
+      <div style="color:var(--green);font-weight:700;font-size:13px;margin-bottom:10px;">🧠 Round Insights</div>
+      <div id="analyticsContent" style="font-size:12px;line-height:1.8;color:var(--text-sec);"></div>
+    </div>
+    <table class="scorecard-table">
+      <thead><tr id="scorecardHeader"><th>Hole</th><th>CVB</th><th>Dist</th><th>Miss</th></tr></thead>
+      <tbody id="scorecardBody"></tbody>
+    </table>
+    <div style="height:16px"></div>
+    <div style="display:flex;gap:10px;margin:0 18px;">
+      <button class="reset-btn" id="resetBtn" onclick="confirmReset()" style="flex:1">↺ Reset</button>
+      <button class="reset-btn" onclick="exportRound()" style="flex:1;border-color:var(--green);color:var(--green)">⬆ Export</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="exportOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⬆ Round Export</div>
+      <button class="modal-close" onclick="closeExport()">✕</button>
+    </div>
+    <div style="padding:16px 18px 8px;">
+      <div id="exportStatus" style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:10px;">✅ Copied — paste into Cowork with scorecard photo</div>
+      <pre id="exportText" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-sec);overflow-x:auto;line-height:1.6;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto;"></pre>
+    </div>
+    <div style="height:16px"></div>
+    <button class="reset-btn" onclick="closeExport()" style="margin:0 18px;width:calc(100% - 36px);border-color:var(--green);color:var(--green)">Done</button>
+    <div style="height:16px"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
