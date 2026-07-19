@@ -8,9 +8,15 @@ const state = {
   // Player 2 — optional
   p2Active:false, p2Name:'', currentPlayer:1,
   p2scores:Array(18).fill(null), p2distances:Array(18).fill(null), p2misses:Array(18).fill(null),
+  // Read calibration — observed break vs predicted, for tuning the multipliers
+  calibrations:[],
   roundDate:new Date().toISOString().slice(0,10),
   _tempDist:0
 };
+
+// Snapshot of the most recent green read, so calibration can reference exactly
+// which inputs produced the predicted break.
+let lastRead = null;
 
 // VALIDATED FORMULA MULTIPLIERS
 const slopeMap = {zero:0, p5:0.5, low:1.0, low5:1.5, mod:2.0, mod5:2.5, strong:3.0, strong5:3.5, steep:4.0, severe:5.0};
@@ -84,6 +90,13 @@ function calculate() {
 
   renderResult({distFt, breakIn, rawBreakIn, entryAngle, apexFt, apexOff, breakDir, aimDir, slopePct, proximityNote, memoryTip, showLag, safeSide, reduction});
   renderTriangle({distFt, breakIn, cupLow:state.cup, showLag});
+  lastRead = {
+    steps:state.steps, distFt:Math.round(distFt*100)/100,
+    slope:state.slope, hill:state.hill, speed:state.speed,
+    grain:state.grain, cup:state.cup, speedIntent:state.speedIntent,
+    predictedBreak:breakIn
+  };
+  document.getElementById('calSection').style.display = 'block';
   // Chad tip lives above the putt logger so it's visible while logging
   const tipEl = document.getElementById('puttChadTip');
   if (chadTip) { tipEl.innerHTML = '🧠 Chad: ' + chadTip; tipEl.style.display = 'block'; }
@@ -328,6 +341,63 @@ function hideLogConfirm() {
   document.getElementById('missSection').style.display='none';
   document.querySelectorAll('.miss-chip').forEach(c=>c.classList.remove('selected-miss'));
   _missSel={line:null,dist:null};
+  resetCalibrationUI();
+}
+
+// ── READ CALIBRATION ──
+// Records how the putt ACTUALLY broke versus what the app predicted, so the
+// formula multipliers can be tuned from real evidence (see tools/calibrate.js).
+// Unit is cup widths, because that's what you can actually judge on a green.
+// Missing on the LOW side  => it broke MORE than predicted (under-read).
+// Missing on the HIGH side => it broke LESS than predicted (over-read).
+const CUP_INCHES = 4.25;
+let _calSel = {dir:null, cups:null};
+let _calLoggedIdx = null; // index of this read's entry, so edits overwrite
+
+function selCalPart(kind, val, el) {
+  _calSel[kind] = val;
+  el.parentElement.querySelectorAll('.miss-chip').forEach(c=>c.classList.remove('selected-miss'));
+  el.classList.add('selected-miss');
+  const wrap = document.getElementById('calMagWrap');
+  if (kind === 'dir' && val === 'pure') {
+    _calSel.cups = 0;
+    wrap.style.display = 'none';
+    logCalibration();
+    return;
+  }
+  if (kind === 'dir') { wrap.style.display = 'block'; }
+  if (_calSel.dir && _calSel.cups !== null) logCalibration();
+}
+
+function logCalibration() {
+  if (!lastRead || !_calSel.dir || _calSel.cups === null) return;
+  const errIn = _calSel.cups * CUP_INCHES;
+  const actual = _calSel.dir === 'under' ? lastRead.predictedBreak + errIn
+               : _calSel.dir === 'over'  ? Math.max(0, lastRead.predictedBreak - errIn)
+               : lastRead.predictedBreak;
+  const entry = Object.assign({}, lastRead, {
+    hole: state.currentHole,
+    player: getCurrentName(),
+    readError: _calSel.dir,
+    errorCups: _calSel.cups,
+    actualBreak: Math.round(actual * 10) / 10
+  });
+  if (_calLoggedIdx !== null) state.calibrations[_calLoggedIdx] = entry;
+  else { state.calibrations.push(entry); _calLoggedIdx = state.calibrations.length - 1; }
+  saveRound();
+  const el = document.getElementById('calConfirm');
+  el.innerHTML = '📐 Predicted <b>' + fmtBreak(lastRead.predictedBreak) + '</b> · actual ≈ <b>' +
+    fmtBreak(Math.round(actual * 10) / 10) + '</b> &nbsp;·&nbsp; ' +
+    state.calibrations.length + ' read' + (state.calibrations.length === 1 ? '' : 's') + ' logged';
+  el.style.display = 'block';
+}
+
+function resetCalibrationUI() {
+  _calSel = {dir:null, cups:null};
+  _calLoggedIdx = null;
+  document.querySelectorAll('#calSection .miss-chip').forEach(c=>c.classList.remove('selected-miss'));
+  document.getElementById('calMagWrap').style.display = 'none';
+  document.getElementById('calConfirm').style.display = 'none';
 }
 
 function updateSessionStats() {
@@ -351,6 +421,7 @@ function saveRound() {
     scores:state.scores, distances:state.distances, misses:state.misses,
     p2Active:state.p2Active, p2Name:state.p2Name,
     p2scores:state.p2scores, p2distances:state.p2distances, p2misses:state.p2misses,
+    calibrations:state.calibrations,
     currentHole:state.currentHole, roundDate:state.roundDate
   })); } catch(e){}
 }
@@ -365,6 +436,7 @@ function loadRound() {
     state.p2Active=s.p2Active||false; state.p2Name=s.p2Name||'';
     state.p2scores=s.p2scores||Array(18).fill(null); state.p2distances=s.p2distances||Array(18).fill(null);
     state.p2misses=s.p2misses||Array(18).fill(null);
+    state.calibrations=s.calibrations||[];
     if (state.p2Active) restoreP2UI();
   } catch(e){}
 }
@@ -467,6 +539,7 @@ function confirmReset() {
   state.scores=Array(18).fill(null); state.distances=Array(18).fill(null); state.misses=Array(18).fill(null);
   state.p2scores=Array(18).fill(null); state.p2distances=Array(18).fill(null); state.p2misses=Array(18).fill(null);
   state.p2Active=false; state.p2Name=''; state.currentPlayer=1;
+  state.calibrations=[]; lastRead=null;
   state.currentHole=1; state.roundDate=new Date().toISOString().slice(0,10);
   state.slope=null; state.hill=null; state.speed=null; state.speedIntent='normal'; state.grain=null; state.cup=null; state.steps=8;
   document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
@@ -486,6 +559,7 @@ function confirmReset() {
   document.getElementById('resultCard').innerHTML='<div class="empty-result"><span class="empty-icon">📐</span>Select all inputs to read the green</div>';
   document.getElementById('canvasSection').classList.remove('visible');
   document.getElementById('puttLogSection').classList.remove('visible');
+  document.getElementById('calSection').style.display='none';
   document.getElementById('missSection').style.display='none';
   document.getElementById('loggedConfirm').className='logged-confirm';
   saveRound(); updateHoleUI(); updateSessionStats(); updateScorecardBadge();
@@ -506,6 +580,7 @@ function exportRound() {
       holes:state.p2scores.map((s,i)=>s===null?null:{hole:i+1,putts:s,distance:state.p2distances[i],miss:state.p2misses[i],proximityAdjusted:state.p2distances[i]!==null&&state.p2distances[i]<=15}).filter(Boolean)
     };
   }
+  if (state.calibrations.length) payload.calibration = state.calibrations;
   const json=JSON.stringify(payload,null,2);
   try { navigator.clipboard.writeText(json); document.getElementById('exportStatus').textContent='✅ Copied — paste into Cowork with scorecard photo'; }
   catch(e) { document.getElementById('exportStatus').textContent='Copy the text below manually'; }

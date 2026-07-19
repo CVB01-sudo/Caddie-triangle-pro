@@ -14,6 +14,8 @@ in the browser — no backend, data is stored locally on the device.
 | `manifest.json` | PWA manifest (name, icons, theme color) |
 | `service-worker.js` | Offline caching so the app works with no signal |
 | `icon-*.png`, `apple-touch-icon.png`, `favicon.png` | App / home-screen icons |
+| `test/verify-math.js` | Verifies the break formula against expected values |
+| `tools/calibrate.js` | Turns logged reads into multiplier recommendations |
 | `caddie-triangle-pro.html` | Original single-file version (kept for reference) |
 
 ## Run it
@@ -42,6 +44,60 @@ subpath.
 To install on **Android**, open the URL in Chrome and use **⋮ → Install app /
 Add to Home screen**. On **desktop** Chrome/Edge, use the install icon in the
 address bar.
+
+## Verifying the math
+
+```
+npm test
+```
+
+Loads the real `app.js` into a mock-DOM sandbox and exercises the actual
+`calculate()` / `calculateDb()` functions — it tests the shipped code, not a
+copy of it. No dependencies required.
+
+It covers ~9,700 input combinations (distance × slope × hill × green speed ×
+grain × cup low × capture speed), checking break inches and entry angle against
+independently derived values, plus:
+
+- monotonicity (more slope / faster greens → more break; zero slope → zero break)
+- downhill > flat > uphill, die > normal > firm, against > across > with
+- proximity reduction applies inside 15 ft only; center cup never reduced
+- the 30% break cap
+- aim direction (left-low → aim right, right-low → aim left, center → aim above)
+- double breaker: same-direction stacking, S-curve netting, S2 inflection weight
+- practice-round exports re-totaled independently
+
+**Run this after any formula change.** Current status: 19,470 / 19,470 passing.
+
+## Calibrating against real putts
+
+The tests prove the code computes what the formula *specifies*. They cannot
+prove the multipliers themselves (stimp values, the 0.70/1.35 hill factors, the
+2.7 ft/step stride) match reality — that takes on-course data.
+
+**Collecting it:** take a read as normal, hit the putt, then under
+**Read Accuracy** record whether it broke MORE (missed low), LESS (missed high),
+or was dead on — and by how many cup widths (1 cup ≈ 4.25"). Then tap **Export**
+on the scorecard and save the JSON.
+
+**Analyzing it:**
+
+```
+npm run calibrate -- path/to/export.json
+```
+
+It reports overall bias and a per-condition breakdown, suggesting concrete new
+multiplier values where a condition is consistently off.
+
+Notes:
+
+- Aim for **20+ reads overall** and **5+ per condition** before changing anything.
+- A uniform bias across *all* conditions usually means your stride (2.7 ft/step)
+  or the `/2` divisor is off — not the individual multipliers.
+- Calibration is **iterative**. When one factor carries the bias, it also drags
+  the overall median, so a single pass slightly under-corrects. Apply a change,
+  collect another round, and re-run to converge.
+- Change one multiplier at a time, then run `npm test` to confirm nothing broke.
 
 ## Updating the app
 

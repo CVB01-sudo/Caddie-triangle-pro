@@ -1,8 +1,8 @@
 // Caddie Triangle Pro — service worker
 // App-shell precache + runtime caching so the app installs and works offline.
 // Bump CACHE_VERSION whenever the precached assets change to force an update.
-const CACHE_VERSION = 'caddie-pro-v1';
-const RUNTIME_CACHE = 'caddie-pro-runtime-v1';
+const CACHE_VERSION = 'caddie-pro-v2';
+const RUNTIME_CACHE = 'caddie-pro-runtime-v2';
 
 // Paths are relative to the service worker's scope (this folder), so it works
 // both locally and under the GitHub Pages subpath.

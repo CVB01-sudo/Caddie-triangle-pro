@@ -28,7 +28,7 @@
       <div class="flag-icon">⛳</div>
       <div>
         <div class="header-title">Caddie Triangle Pro</div>
-        <div class="header-sub">Chad Method · v1.1</div>
+        <div class="header-sub">Chad Method · v1.2</div>
       </div>
     </div>
     <button class="scorecard-btn" onclick="openScorecard()">
@@ -300,6 +300,24 @@
         <div class="miss-chip" onclick="selMissPart('dist','good',this)">✓ Good Pace</div>
         <div class="miss-chip" onclick="selMissPart('dist','long',this)">⬆ Long</div>
       </div>
+    </div>
+    <div id="calSection" style="display:none;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+      <div class="section-label">Read Accuracy — how did it actually break?</div>
+      <div class="miss-chips" id="calDirRow" style="margin-bottom:10px">
+        <div class="miss-chip" onclick="selCalPart('dir','under',this)">Broke MORE<span class="putt-chip-label">missed low</span></div>
+        <div class="miss-chip" onclick="selCalPart('dir','pure',this)">🎯 Dead On<span class="putt-chip-label">read was pure</span></div>
+        <div class="miss-chip" onclick="selCalPart('dir','over',this)">Broke LESS<span class="putt-chip-label">missed high</span></div>
+      </div>
+      <div id="calMagWrap" style="display:none">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-sec);margin-bottom:6px">By how much? (cup widths ≈ 4.25" each)</div>
+        <div class="miss-chips" id="calMagRow" style="grid-template-columns:1fr 1fr 1fr 1fr">
+          <div class="miss-chip" onclick="selCalPart('cups',0.5,this)">½</div>
+          <div class="miss-chip" onclick="selCalPart('cups',1,this)">1</div>
+          <div class="miss-chip" onclick="selCalPart('cups',2,this)">2</div>
+          <div class="miss-chip" onclick="selCalPart('cups',3,this)">3+</div>
+        </div>
+      </div>
+      <div id="calConfirm" style="display:none;margin-top:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border-bright);border-radius:8px;color:var(--text-sec);font-size:12px;font-weight:600;line-height:1.5"></div>
     </div>
     <div class="logged-confirm" id="loggedConfirm"></div>
     <button class="log-p2-btn" id="logP2Btn" onclick="startLogP2()"></button>

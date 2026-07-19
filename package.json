@@ -1,0 +1,10 @@
+{
+  "name": "caddie-triangle-pro",
+  "version": "1.2.0",
+  "private": true,
+  "description": "Green-reading caddie: triangle putt reads, break calculator, and putting scorecard.",
+  "scripts": {
+    "test": "node test/verify-math.js .",
+    "calibrate": "node tools/calibrate.js"
+  }
+}
