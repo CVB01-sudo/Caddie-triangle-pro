@@ -77,8 +77,12 @@ prove the multipliers themselves (stimp values, the 0.70/1.35 hill factors, the
 
 **Collecting it:** take a read as normal, hit the putt, then under
 **Read Accuracy** record whether it broke MORE (missed low), LESS (missed high),
-or was dead on — and by how many cup widths (1 cup ≈ 4.25"). Then tap **Export**
-on the scorecard and save the JSON.
+or was dead on — and by how many cup widths (1 cup ≈ 4.25").
+
+**Getting it off the phone:** open the scorecard → **Export** → **📤 Save /
+Share**. On iOS that opens the share sheet, so you can AirDrop it to a computer,
+save to Files, or mail it to yourself. Elsewhere it downloads as
+`caddie-round-YYYY-MM-DD.json`.
 
 **Analyzing it:**
 
@@ -92,6 +96,10 @@ multiplier values where a condition is consistently off.
 Notes:
 
 - Aim for **20+ reads overall** and **5+ per condition** before changing anything.
+- **Log the dead-on reads too.** They set the baseline the other numbers are
+  measured against. In testing, a sample with 67% pure reads recovered a known
+  bias as 1.237 (truth 1.25); a sample with few pure reads recovered the same
+  bias as only 1.215, because the bias dragged the baseline it was compared to.
 - A uniform bias across *all* conditions usually means your stride (2.7 ft/step)
   or the `/2` divisor is off — not the individual multipliers.
 - Calibration is **iterative**. When one factor carries the bias, it also drags

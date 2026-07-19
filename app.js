@@ -567,7 +567,7 @@ function confirmReset() {
   document.getElementById('modalOverlay').classList.remove('open');
 }
 
-function exportRound() {
+function buildRoundPayload() {
   const played=state.scores.filter(s=>s!==null), total=played.reduce((a,b)=>a+b,0);
   const p1holes=state.scores.map((s,i)=>s===null?null:{hole:i+1,putts:s,distance:state.distances[i],miss:state.misses[i],proximityAdjusted:state.distances[i]!==null&&state.distances[i]<=15}).filter(Boolean);
   const payload={
@@ -581,11 +581,53 @@ function exportRound() {
     };
   }
   if (state.calibrations.length) payload.calibration = state.calibrations;
-  const json=JSON.stringify(payload,null,2);
-  try { navigator.clipboard.writeText(json); document.getElementById('exportStatus').textContent='✅ Copied — paste into Cowork with scorecard photo'; }
+  return payload;
+}
+
+function roundFileName() { return 'caddie-round-' + state.roundDate + '.json'; }
+
+function exportRound() {
+  const json=JSON.stringify(buildRoundPayload(),null,2);
+  const cal=state.calibrations.length;
+  try { navigator.clipboard.writeText(json); document.getElementById('exportStatus').textContent='✅ Copied'+(cal?' — includes '+cal+' calibration read'+(cal===1?'':'s'):''); }
   catch(e) { document.getElementById('exportStatus').textContent='Copy the text below manually'; }
   document.getElementById('exportText').textContent=json;
   document.getElementById('exportOverlay').classList.add('open');
+}
+
+// Hand the round to the OS share sheet (AirDrop / Files / Mail on iOS) so the
+// JSON can reach a computer for `npm run calibrate`. Falls back to a plain
+// file download where the Web Share API can't take files.
+function shareRound() {
+  const json = JSON.stringify(buildRoundPayload(), null, 2);
+  const name = roundFileName();
+  const status = document.getElementById('exportStatus');
+  const fallbackDownload = function () {
+    try {
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      status.textContent = '✅ Saved ' + name;
+    } catch (e) {
+      status.textContent = 'Could not save — copy the text below manually';
+    }
+  };
+  try {
+    const file = new File([json], name, { type: 'application/json' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: 'Caddie Round ' + state.roundDate })
+        .then(function () { status.textContent = '✅ Shared ' + name; })
+        .catch(function (err) {
+          if (err && err.name === 'AbortError') return; // user dismissed the sheet
+          fallbackDownload();
+        });
+      return;
+    }
+  } catch (e) { /* File/canShare unsupported — fall through */ }
+  fallbackDownload();
 }
 
 function closeExport() { document.getElementById('exportOverlay').classList.remove('open'); }

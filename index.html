@@ -28,7 +28,7 @@
       <div class="flag-icon">⛳</div>
       <div>
         <div class="header-title">Caddie Triangle Pro</div>
-        <div class="header-sub">Chad Method · v1.2</div>
+        <div class="header-sub">Chad Method · v1.3</div>
       </div>
     </div>
     <button class="scorecard-btn" onclick="openScorecard()">
@@ -362,7 +362,10 @@
       <pre id="exportText" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-sec);overflow-x:auto;line-height:1.6;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto;"></pre>
     </div>
     <div style="height:16px"></div>
-    <button class="reset-btn" onclick="closeExport()" style="margin:0 18px;width:calc(100% - 36px);border-color:var(--green);color:var(--green)">Done</button>
+    <div style="display:flex;gap:10px;margin:0 18px;">
+      <button class="reset-btn" onclick="shareRound()" style="flex:1;border-color:var(--gold);color:var(--gold)">📤 Save / Share</button>
+      <button class="reset-btn" onclick="closeExport()" style="flex:1;border-color:var(--green);color:var(--green)">Done</button>
+    </div>
     <div style="height:16px"></div>
   </div>
 </div>

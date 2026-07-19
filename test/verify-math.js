@@ -58,7 +58,7 @@ const sandbox = {
 sandbox.globalThis = sandbox;
 sandbox.self = sandbox;
 
-const epilogue = `;globalThis.__hooks = { state, dbState, slopeMap, speedMap, hillMap, grainMap, speedIntentMap, proximityReduction, fmtBreak, calculate, calculateDb, selCalPart, resetCalibrationUI, CUP_INCHES };`;
+const epilogue = `;globalThis.__hooks = { state, dbState, slopeMap, speedMap, hillMap, grainMap, speedIntentMap, proximityReduction, fmtBreak, calculate, calculateDb, selCalPart, resetCalibrationUI, CUP_INCHES, buildRoundPayload, roundFileName };`;
 vm.createContext(sandbox);
 vm.runInContext(appSrc + epilogue, sandbox, { filename: 'app.js' });
 const H = sandbox.__hooks;
@@ -283,7 +283,55 @@ for (const [st, s1s, a, b] of dbCases) {
   state.calibrations.length = 0;
 }
 
-// 5) PRACTICE-ROUND export aggregation (independent re-total)
+// 5) EXPORT PAYLOAD — what the calibration pipeline actually consumes
+{
+  // seed a small round: holes 1-4 = 2,1,3,2 putts
+  state.scores = Array(18).fill(null);
+  state.distances = Array(18).fill(null);
+  state.misses = Array(18).fill(null);
+  state.calibrations.length = 0;
+  const putts = [2, 1, 3, 2], dists = [12, 4, 30, 8], misses = ['short', 'made', 'long-right', 'left'];
+  putts.forEach((p, i) => { state.scores[i] = p; state.distances[i] = dists[i]; state.misses[i] = misses[i]; });
+  state.p2Active = false;
+
+  let pay = H.buildRoundPayload();
+  check('export: holesPlayed', pay.holesPlayed === 4, 'got ' + pay.holesPlayed);
+  check('export: totalPutts', pay.player1.totalPutts === 8, 'got ' + pay.player1.totalPutts);
+  check('export: onePutts', pay.player1.onePutts === 1, 'got ' + pay.player1.onePutts);
+  check('export: threePutts', pay.player1.threePutts === 1, 'got ' + pay.player1.threePutts);
+  check('export: avg', Math.abs(pay.player1.avg - 2) < 0.001, 'got ' + pay.player1.avg);
+  check('export: holes array length', pay.player1.holes.length === 4, 'got ' + pay.player1.holes.length);
+  check('export: proximityAdjusted flag', pay.player1.holes[0].proximityAdjusted === true && pay.player1.holes[2].proximityAdjusted === false,
+        JSON.stringify(pay.player1.holes.map(h => h.proximityAdjusted)));
+  check('export: no calibration key when empty', pay.calibration === undefined, 'got ' + typeof pay.calibration);
+
+  // calibration rides along once reads exist
+  runSingle(8, 'mod', 'flat', 'med', 'across', 'left', 'normal');
+  H.resetCalibrationUI();
+  H.selCalPart('dir', 'under', makeEl());
+  H.selCalPart('cups', 1, makeEl());
+  pay = H.buildRoundPayload();
+  check('export: calibration included', Array.isArray(pay.calibration) && pay.calibration.length === 1, JSON.stringify(pay.calibration && pay.calibration.length));
+  check('export: calibration has context', pay.calibration && pay.calibration[0].slope === 'mod' && typeof pay.calibration[0].actualBreak === 'number',
+        JSON.stringify(pay.calibration && pay.calibration[0]));
+  check('export: filename', /^caddie-round-\d{4}-\d{2}-\d{2}\.json$/.test(H.roundFileName()), H.roundFileName());
+
+  // round-trips through JSON (what actually gets shared/downloaded)
+  const reparsed = JSON.parse(JSON.stringify(pay));
+  check('export: JSON round-trip', reparsed.player1.totalPutts === 8 && reparsed.calibration.length === 1, 'ok');
+
+  // the analyzer must be able to read it
+  const o = reparsed.calibration[0];
+  check('export: analyzer-readable', typeof o.predictedBreak === 'number' && typeof o.actualBreak === 'number' && o.predictedBreak > 0,
+        JSON.stringify({ p: o.predictedBreak, a: o.actualBreak }));
+
+  state.scores = Array(18).fill(null);
+  state.distances = Array(18).fill(null);
+  state.misses = Array(18).fill(null);
+  state.calibrations.length = 0;
+}
+
+// 6) PRACTICE-ROUND export aggregation (independent re-total)
 const dataDir = path.join(ROOT, 'Practice Round Data');
 for (const f of fs.readdirSync(dataDir).filter(x => x.endsWith('.md'))) {
   const raw = fs.readFileSync(path.join(dataDir, f), 'utf8');
